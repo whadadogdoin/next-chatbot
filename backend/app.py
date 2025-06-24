@@ -15,6 +15,15 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 vx = VectorX(os.getenv("VECX_TOKEN"))
 index = vx.get_index("new_next_index")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 @app.get("/chat/{query}")
 async def test(query):
     try:
@@ -33,7 +42,7 @@ async def test(query):
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             config=types.GenerateContentConfig(
-                system_instruction="You are a chatbot made to help developers learn about the working of Next.js."
+                system_instruction="You are a chatbot made to help developers learn about the working of Next.js. Send the response text strictly in a mardkdown file."
             ),
             contents=prompt
         )
