@@ -18,7 +18,10 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+   if (!messagesEndRef.current) return;
+    requestAnimationFrame(() => {
+     messagesEndRef.current!.scrollIntoView({ behavior: 'smooth' });
+    });
   }
 
   useEffect(() => {
@@ -57,7 +60,7 @@ function App() {
       }
     } catch (error) {
       console.error(error)
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: 'Oops, something went wrong. Please try again.' }])
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: "assistant", content: 'Oops, something went wrong' }])
     } finally {
       setIsLoading(false)
     }
