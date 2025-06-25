@@ -3,10 +3,10 @@ from dotenv import load_dotenv
 import requests
 import json
 from vecx.vectorx import VectorX
+from create_index import index
 
 load_dotenv()
 
-vecx_token = os.getenv("VECX_TOKEN")
 jina_key = os.getenv("JINA_API_KEY")
 enc_key = os.getenv("ENCRYPTION_KEY")
 
@@ -34,7 +34,6 @@ def jina_embed(texts, batch_size=32):
     return embeddings
 
 def main():
-    vx = VectorX(vecx_token)
 
     passages = []
 
@@ -50,8 +49,6 @@ def main():
     
     texts = [p["text"] for p in passages]
     vectors = jina_embed(texts)
-
-    index = vx.get_index(name="next_enc_idx", key = enc_key)
 
     for v,p in zip(vectors,passages):
         # print(v, p["text"])

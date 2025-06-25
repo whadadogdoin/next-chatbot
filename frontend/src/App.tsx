@@ -83,7 +83,7 @@ function App() {
           </CardHeader>
 
           <CardContent className="flex-1 p-0 overflow-hidden">
-            <ScrollArea className="h-full p-4">
+            <ScrollArea className="h-full p-4 overflow-x-hidden">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <Bot className="w-16 h-16 text-gray-300 mb-4" />
@@ -115,7 +115,7 @@ function App() {
                         }`}
                       >
                         {message.role === 'assistant' ? (
-                          <div className='prose prose-sm whitespace-pre-wrap text-left break-word overflow-x-auto'>
+                          <div className='prose prose-sm whitespace-pre-wrap text-left break-words'>
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                           </div>
                         ) : (

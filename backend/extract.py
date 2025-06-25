@@ -19,7 +19,46 @@ urls = ["https://nextjs.org/docs/app/getting-started/installation",
         "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
         "https://nextjs.org/docs/app/getting-started/route-handlers-and-middleware",
         "https://nextjs.org/docs/app/getting-started/deploying",
-        "https://nextjs.org/docs/app/getting-started/upgrading"
+        "https://nextjs.org/docs/app/getting-started/upgrading",
+        "https://nextjs.org/docs/app/guides/analytics",
+        "https://nextjs.org/docs/app/guides/authentication",
+        "https://nextjs.org/docs/app/guides/backend-for-frontend",
+        "https://nextjs.org/docs/app/guides/caching",
+        "https://nextjs.org/docs/app/guides/ci-build-caching",
+        "https://nextjs.org/docs/app/guides/content-security-policy",
+        "https://nextjs.org/docs/app/guides/css-in-js",
+        "https://nextjs.org/docs/app/guides/custom-server",
+        "https://nextjs.org/docs/app/guides/data-security",
+        "https://nextjs.org/docs/app/guides/debugging",
+        "https://nextjs.org/docs/app/guides/draft-mode",
+        "https://nextjs.org/docs/app/guides/environment-variables",
+        "https://nextjs.org/docs/app/guides/forms",
+        "https://nextjs.org/docs/app/guides/incremental-static-regeneration",
+        "https://nextjs.org/docs/app/guides/instrumentation",
+        "https://nextjs.org/docs/app/guides/internationalization",
+        "https://nextjs.org/docs/app/guides/json-ld",
+        "https://nextjs.org/docs/app/guides/lazy-loading",
+        "https://nextjs.org/docs/app/guides/local-development",
+        "https://nextjs.org/docs/app/guides/mdx",
+        "https://nextjs.org/docs/app/guides/memory-usage",
+        "https://nextjs.org/docs/app/guides/migrating/app-router-migration",
+        "https://nextjs.org/docs/app/guides/migrating/from-create-react-app",
+        "https://nextjs.org/docs/app/guides/migrating/from-vite",
+        "https://nextjs.org/docs/app/guides/multi-tenant",
+        "https://nextjs.org/docs/app/guides/multi-zones",
+        "https://nextjs.org/docs/app/guides/open-telemetry",
+        "https://nextjs.org/docs/app/guides/package-bundling",
+        "https://nextjs.org/docs/app/guides/prefetching",
+        "https://nextjs.org/docs/app/guides/production-checklist",
+        "https://nextjs.org/docs/app/guides/progressive-web-apps",
+        "https://nextjs.org/docs/app/guides/redirecting",
+        "https://nextjs.org/docs/app/guides/sass",
+        "https://nextjs.org/docs/app/guides/scripts",
+        "https://nextjs.org/docs/app/guides/self-hosting",
+        "https://nextjs.org/docs/app/guides/single-page-applications",
+        "https://nextjs.org/docs/app/guides/static-exports",
+        "https://nextjs.org/docs/app/guides/tailwind-css",
+        "https://nextjs.org/docs/app/guides/third-party-libraries"
     ]
 
 def fetchPage(url):
@@ -41,7 +80,7 @@ def fetchPage(url):
         return stripped
     
 with open("next-js-docs.jsonl","w",encoding="utf-8") as f:
-    for url in urls[5:]:
+    for url in urls[17:]:
         try:
             content = fetchPage(url)
             json.dump({"url": url, "content": content},f)
