@@ -8,6 +8,7 @@ load_dotenv()
 
 vecx_token = os.getenv("VECX_TOKEN")
 jina_key = os.getenv("JINA_API_KEY")
+enc_key = os.getenv("ENCRYPTION_KEY")
 
 API_URL = "https://api.jina.ai/v1/embeddings"
 
@@ -50,7 +51,7 @@ def main():
     texts = [p["text"] for p in passages]
     vectors = jina_embed(texts)
 
-    index = vx.get_index(name="new_next_index")
+    index = vx.get_index(name="next_enc_idx", key = enc_key)
 
     for v,p in zip(vectors,passages):
         # print(v, p["text"])

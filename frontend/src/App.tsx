@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/card"
 import { ScrollArea } from "@/components/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/avatar"
 import { Button } from './components/button'
-import axios from "axios"
+// import axios from "axios"
 //@ts-ignore
 import ReactMarkdown from 'react-markdown'
 
@@ -34,22 +34,30 @@ function App() {
     const query = input.trim()
     if (!query) return
 
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: query }])
+    const userId = crypto.randomUUID()
+    const assistantId = crypto.randomUUID()
+
+    setMessages(prev => [...prev, { id: userId, role: 'user', content: query }])
     setInput('')
     setIsLoading(true)
 
     try {
-      const response = await axios.get(`http://localhost:8000/chat/${encodeURIComponent(query)}`)
-      const data = response.data
-      const parts = data?.result?.candidates?.[0]?.content?.parts
-      const botReply = Array.isArray(parts) && parts.length > 0
-        ? parts[0].text
-        : 'No response available.'
-
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: botReply }])
+      setMessages(prev => [...prev, {id: assistantId, role: "assistant", content: ''}])
+      const response = await fetch(`http://localhost:8000/chat/${encodeURIComponent(query)}`)
+      if (!response.body) throw new Error('No streaming body')
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let partial = ''
+      while(true){
+        const {done,value} = await reader.read()
+        if (done)
+          break
+        partial += decoder.decode(value,{stream: true})
+        setMessages(prev => prev.map(m => m.id === assistantId ? {...m, content: partial} : m))
+      }
     } catch (error) {
       console.error(error)
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: 'Oops, something went wrong.' }])
+      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), role: 'assistant', content: 'Oops, something went wrong. Please try again.' }])
     } finally {
       setIsLoading(false)
     }
@@ -88,7 +96,7 @@ function App() {
                       key={message.id}
                       className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      {message.role === 'assistant' && (
+                      {message.role === 'assistant' && message.content!= '' && (
                         <Avatar className="w-8 h-8 bg-blue-100 flex-shrink-0">
                           <AvatarFallback>
                             <Bot className="w-4 h-4 text-blue-600" />
@@ -104,7 +112,7 @@ function App() {
                         }`}
                       >
                         {message.role === 'assistant' ? (
-                          <div className='prose prose-sm whitespace-pre-wrap text-left break-words'>
+                          <div className='prose prose-sm whitespace-pre-wrap text-left break-word overflow-x-auto'>
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                           </div>
                         ) : (

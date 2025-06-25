@@ -7,7 +7,19 @@ urls = ["https://nextjs.org/docs/app/getting-started/installation",
         "https://nextjs.org/docs/app/getting-started/project-structure",
         "https://nextjs.org/docs/app/getting-started/layouts-and-pages",
         "https://nextjs.org/docs/app/getting-started/layouts-and-pages",
-        "https://nextjs.org/docs/app/getting-started/server-and-client-components"
+        "https://nextjs.org/docs/app/getting-started/server-and-client-components",
+        "https://nextjs.org/docs/app/getting-started/partial-prerendering",
+        "https://nextjs.org/docs/app/getting-started/fetching-data",
+        "https://nextjs.org/docs/app/getting-started/updating-data",
+        "https://nextjs.org/docs/app/getting-started/caching-and-revalidating",
+        "https://nextjs.org/docs/app/getting-started/error-handling",
+        "https://nextjs.org/docs/app/getting-started/css",
+        "https://nextjs.org/docs/app/getting-started/images",
+        "https://nextjs.org/docs/app/getting-started/fonts",
+        "https://nextjs.org/docs/app/getting-started/metadata-and-og-images",
+        "https://nextjs.org/docs/app/getting-started/route-handlers-and-middleware",
+        "https://nextjs.org/docs/app/getting-started/deploying",
+        "https://nextjs.org/docs/app/getting-started/upgrading"
     ]
 
 def fetchPage(url):
@@ -29,7 +41,7 @@ def fetchPage(url):
         return stripped
     
 with open("next-js-docs.jsonl","w",encoding="utf-8") as f:
-    for url in urls:
+    for url in urls[5:]:
         try:
             content = fetchPage(url)
             json.dump({"url": url, "content": content},f)
