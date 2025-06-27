@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from qdrant_client import QdrantClient
 from vecx.vectorx import VectorX
+from pinecone import Pinecone
 
 load_dotenv()
 
@@ -77,7 +78,7 @@ def vectorx_recall():
     # print(result)
 
     for v,ex in result:
-        print("here")
+        # print("here")
         i+=1
         try:
             results = index.query(
@@ -95,9 +96,42 @@ def vectorx_recall():
         except Exception as e:
             print(f"Error while querying: {id}.Error: {e}")
 
+def pinecone_recall():
+    hits = 0
+
+    pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+    index_name = "next-comp-2"
+
+    index = pc.Index(index_name)
+
+    i=0
+
+    for v,ex in result:
+        # print("here")
+        i+=1
+        try:
+            results = index.query(
+                vector=v,
+                top_k=5,
+                include_metadata = True
+            )
+            ex_norm = normalize(ex)
+            # print(results)
+            for r in results["matches"]:
+                text_norm = normalize(r["metadata"]["text"])
+                # print(f"{ex_norm}, {text_norm}")
+                if ex_norm in text_norm:
+                    hits += 1
+                    break
+            print(f"Successfully queried: {i}. hits: {hits}. Recall rate {hits/i:.2f} in Pinecone")
+        except Exception as e:
+            print(f"Error while querying: {id}.Error: {e}")
+
+
 if __name__=="__main__":
-    qdrant_recall()
+    # qdrant_recall()
     vectorx_recall()
+    # pinecone_recall()
 
             
 # 15 44 46 48 50
