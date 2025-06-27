@@ -7,15 +7,14 @@ from ingest import jina_embed
 from google.genai import types
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from create_index import index
 
 app = FastAPI()
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-# vx = VectorX(os.getenv("VECX_TOKEN"))
-# index = vx.get_index("next_enc_idx",os.getenv("ENCRYPTION_KEY"))
+vx = VectorX(os.getenv("VECX_TOKEN"))
+index = vx.get_index("next_comp3")
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +32,7 @@ async def test(query):
 
         results = index.query(
             vector=queryVector,
-            top_k=10
+            top_k=20
         )
         passages = [hit['meta']['text'] for hit in results]
         if not passages:

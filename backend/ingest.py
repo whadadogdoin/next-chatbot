@@ -3,12 +3,10 @@ from dotenv import load_dotenv
 import requests
 import json
 from vecx.vectorx import VectorX
-from create_index import index
 
 load_dotenv()
 
 jina_key = os.getenv("JINA_API_KEY")
-enc_key = os.getenv("ENCRYPTION_KEY")
 
 API_URL = "https://api.jina.ai/v1/embeddings"
 
@@ -50,6 +48,9 @@ def main():
     texts = [p["text"] for p in passages]
     vectors = jina_embed(texts)
 
+    vx = VectorX(os.getenv("VECX_TOKEN"))
+    index = vx.get_index("next_comp3")
+
     for v,p in zip(vectors,passages):
         # print(v, p["text"])
         index.upsert([{
@@ -58,6 +59,8 @@ def main():
             "meta": {"text": p["text"]}
         }])
         print(f"upserted {p["id"]}")
+
+
     
 if __name__ == "__main__":
     main()

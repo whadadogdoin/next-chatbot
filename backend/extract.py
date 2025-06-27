@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 import re
 import json
+from pathlib import Path
 
 urls = ["https://nextjs.org/docs/app/getting-started/installation",
         "https://nextjs.org/docs/app/getting-started/project-structure",
@@ -61,6 +62,21 @@ urls = ["https://nextjs.org/docs/app/getting-started/installation",
         "https://nextjs.org/docs/app/guides/third-party-libraries"
     ]
 
+existing_urls = set()
+
+docs_path = Path("next_js_docs.jsonl")
+
+if docs_path.exists():
+    with open(docs_path,"r",encoding="utf-8") as f:
+        for line in f:
+            try:
+                data = json.loads(line)
+                if "url" in data:
+                    existing_urls.add(data["url"])
+            except Exception as e:
+                print(f"Error while inseting existing urls: {e}")
+
+
 def fetchPage(url):
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -79,12 +95,15 @@ def fetchPage(url):
         stripped = cleaned_text.strip()
         return stripped
     
-with open("next-js-docs.jsonl","w",encoding="utf-8") as f:
-    for url in urls[17:]:
-        try:
-            content = fetchPage(url)
-            json.dump({"url": url, "content": content},f)
-            f.write("\n")
-            print(f"saved file for url: {url}")
-        except Exception as e:
-            print(f"Error saving file with url: {url} -- {e}")
+with open("next_js_docs.jsonl","a",encoding="utf-8") as f:
+    for url in urls:
+        if url in existing_urls:
+            print(f"url already extracted: {url}")
+        else:
+            try:
+                content = fetchPage(url)
+                json.dump({"url": url, "content": content},f)
+                f.write("\n")
+                print(f"saved file for url: {url}")
+            except Exception as e:
+                print(f"Error saving file with url: {url} -- {e}")

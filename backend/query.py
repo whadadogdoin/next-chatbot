@@ -8,7 +8,8 @@ load_dotenv()
 def query(param):
     queryVector = jina_embed([param])[0]
     vx = VectorX(os.getenv("VECX_TOKEN"))
-    index = vx.get_index("next_enc_idx",os.getenv("ENCRYPTION_KEY"))
+    # encryption_key = "54d8d0a8b7052b03ac217670776579b0"
+    index = vx.get_index("next_comp3")
 
     results = index.query(
         vector=queryVector,
