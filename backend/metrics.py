@@ -10,7 +10,7 @@ vecx_token = os.getenv("VECX_TOKEN")
 
 vx = VectorX(vecx_token)
 
-index = vx.get_index("next_comp3",)
+index = vx.get_index("beir_comp1",)
 
 print(index.describe())
 

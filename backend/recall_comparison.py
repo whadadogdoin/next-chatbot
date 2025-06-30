@@ -6,133 +6,129 @@ from pathlib import Path
 from qdrant_client import QdrantClient
 from vecx.vectorx import VectorX
 from pinecone import Pinecone
+from beir import util, LoggingHandler, util
+from beir.datasets.data_loader import GenericDataLoader
+import pandas as pd
+from collections import defaultdict
+from qdrant_client.models import SearchParams
+import time
+
 
 load_dotenv()
 
-embedded_queries = []
-expected_result = []
+# result = list(embed_queries())
 
-def normalize(text):
-    import re
-    text = text.lower()
-    text = re.sub(r"[^\w\s]", " ", text)
-    text = re.sub(r"\s+", " ", text)
-    return text.strip()
+train_qrels =  pd.read_csv("beir_dataset/scifact/qrels/train.tsv", sep='\t', names=["query-id", "corpus-id", "score"])
+test_qrels =  pd.read_csv("beir_dataset/scifact/qrels/test.tsv", sep='\t', names=["query-id", "corpus-id", "score"])
 
-def embed_queries():
-    
-    path = Path("eval_query.json")
+combined_qrels = pd.concat([train_qrels,test_qrels], ignore_index=True)
+relevant_docs = defaultdict(set)
 
-    with path.open("r",encoding="utf-8") as f:
-        queries = json.load(f)
-        for data in queries:
-            query = data.get("query")
-            expected = data.get("expected_contains")
-            query_vector = jina_embed([query])[0]
-            embedded_queries.append(query_vector)
-            expected_result.append(expected)
-    return zip(embedded_queries,expected_result)
+for _, row in combined_qrels.iterrows():
+    relevant_docs[row["query-id"]].add(row["corpus-id"])
 
-result = list(embed_queries())
 
 def qdrant_recall():
 
-    hits=0
+    start = time.time()
 
     qdrant = QdrantClient(
         api_key=os.getenv("QDRANT_API_KEY"),
         url=os.getenv("QDRANT_URL")
     )
 
-    i=0
-
-    for v,ex in result:
-        i+=1
-        try:
+    with open("embedded_queries.json", "r", encoding="utf-8") as f:
+        queries = json.load(f)
+        total = 0
+        num_q = 0
+        for query in queries:
+            hits = 0
+            qid = query.get("id")
+            qv = query.get("vector")
             results = qdrant.search(
-                collection_name="next_docs_comp",
-                query_vector=v,
-                limit=20
+                collection_name="beir_comp",
+                query_vector= qv,
+                limit=10,
+                search_params=SearchParams(hnsw_ef=128),
             )
-            ex_norm = normalize(ex)
-            for r in results:
-                text_norm = normalize(r.payload.get("text", ""))
-                # print(f"{ex_norm}, {text_norm}")
-                if ex_norm in text_norm:
-                    hits += 1
-                    break
-            print(f"Successfully queried: {i}. hits: {hits}. Recall rate {hits/i:.2f} in Qdrant")
-        except Exception as e:
-            print(f"Error while querying: {id}.Error: {e}")
+            retrieved_ids = set({r.payload.get("source_id") for r in results})
+            ground_truth = relevant_docs[qid]
+            matched = retrieved_ids & ground_truth
+            recall = len(matched)/len(ground_truth)
+            total += recall
+            num_q +=1
+            print(f"Recall for {qid}: {recall}")
+        end = time.time()
+        print(f"Avg recall Qdrant: {total/num_q:.2f}")
+        print(f"Time taken: {end-start:.2f}")
 
 def vectorx_recall():
-    hits = 0
+
+    start = time.time()
 
     vx = VectorX(os.getenv("VECX_TOKEN"))
-    # encryption_key = "160f9e8ca0eba4a7f8225713ed17cf54"
-    # encryption_key= "d432adf3b92089b7b63c4f9474301686"
-    index = vx.get_index("next_comp3")
+    index = vx.get_index("beir_comp1")
 
-    i=0
-
-    # print(result)
-
-    for v,ex in result:
-        # print("here")
-        i+=1
-        try:
+    with open("embedded_queries.json", "r", encoding="utf-8") as f:
+        queries = json.load(f)
+        total = 0
+        num_q = 0
+        for query in queries:
+            hits = 0
+            qid = query.get("id")
+            qv = query.get("vector")
             results = index.query(
-                    vector=v,
-                    top_k=20
+                vector = qv,
+                top_k = 10
             )
-            ex_norm = normalize(ex)
-            for r in results:
-                text_norm = normalize(r["meta"]["text"])
-                # print(f"{ex_norm}, {text_norm}")
-                if ex_norm in text_norm:
-                    hits += 1
-                    break
-            print(f"Successfully queried: {i}. hits: {hits}. Recall rate {hits/i:.2f} in VectorX")
-        except Exception as e:
-            print(f"Error while querying: {id}.Error: {e}")
+            retrieved_ids = set({r["id"] for r in results})
+            ground_truth = relevant_docs[qid]
+            matched = retrieved_ids & ground_truth
+            # print(retrieved_ids)
+            # print(ground_truth)
+            # print(matched)
+            recall = len(matched)/len(ground_truth)
+            total += recall
+            num_q +=1
+            print(f"Recall for {qid}: {recall}")
+        end = time.time()
+        print(f"Avg recall VectorX: {total/num_q:.2f}")
+        print(f"Time taken: {end-start:.2f}")
+
 
 def pinecone_recall():
-    hits = 0
+
+    start = time.time()
 
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-    index_name = "next-comp-2"
+    index_name = "beir-comp"
 
     index = pc.Index(index_name)
 
-    i=0
-
-    for v,ex in result:
-        # print("here")
-        i+=1
-        try:
+    with open("embedded_queries.json", "r", encoding="utf-8") as f:
+        queries = json.load(f)
+        total = 0
+        num_q = 0
+        for query in queries:
+            hits = 0
+            qid = query.get("id")
+            qv = query.get("vector")
             results = index.query(
-                vector=v,
-                top_k=5,
-                include_metadata = True
+                vector = qv,
+                top_k = 10
             )
-            ex_norm = normalize(ex)
-            # print(results)
-            for r in results["matches"]:
-                text_norm = normalize(r["metadata"]["text"])
-                # print(f"{ex_norm}, {text_norm}")
-                if ex_norm in text_norm:
-                    hits += 1
-                    break
-            print(f"Successfully queried: {i}. hits: {hits}. Recall rate {hits/i:.2f} in Pinecone")
-        except Exception as e:
-            print(f"Error while querying: {id}.Error: {e}")
-
+            retrieved_ids = set({r["id"] for r in results["matches"]})
+            ground_truth = relevant_docs[qid]
+            matched = retrieved_ids & ground_truth
+            recall = len(matched)/len(ground_truth)
+            total += recall
+            num_q +=1
+            print(f"Recall for {qid}: {recall}")
+        end = time.time()
+        print(f"Avg recall Pinecone: {total/num_q:.2f}")
+        print(f"Time taken: {end-start:.2f}")
 
 if __name__=="__main__":
-    # qdrant_recall()
+    qdrant_recall()
     vectorx_recall()
-    # pinecone_recall()
-
-            
-# 15 44 46 48 50
-# 15 34 44 46 47 50
+    pinecone_recall()

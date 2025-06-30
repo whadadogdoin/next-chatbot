@@ -64,12 +64,13 @@ def upsert_vectorx():
 
     encryption_key = vx.generate_key()
     vx.create_index(
-        name="next_comp3",
+        name="next_enc_comp12",
         dimension=1024,
-        space_type="cosine"
+        space_type="cosine",
+        key=encryption_key
     )
 
-    index = vx.get_index("next_comp3")
+    index = vx.get_index("next_enc_comp12",encryption_key)
 
     passages = []
 
@@ -101,7 +102,7 @@ def upsert_vectorx():
         index.upsert(payload)
         print(f"Upserted points {i} to {i+len(batch_vectors)}")
     
-    # vx.delete_index("next_enc_comp3")
+    # vx.delete_index("next_enc_comp12")
 
     end = time.time()
 

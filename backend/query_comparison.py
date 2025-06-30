@@ -56,7 +56,9 @@ def vectorx_query():
     vx = VectorX(os.getenv("VECX_TOKEN"))
     # encryption_key = "160f9e8ca0eba4a7f8225713ed17cf54"
     # encryption_key= "d432adf3b92089b7b63c4f9474301686"
-    index = vx.get_index("next_comp3")
+    # encryption_key="087f90ac527feca98886fbda155a85bc"
+    encryption_key = "2ab0e11c34f71e1c4fdb66e16f9e66d0"
+    index = vx.get_index("next_enc_comp12",encryption_key)
 
     times = []
 
